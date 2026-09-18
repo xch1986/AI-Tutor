@@ -39,6 +39,10 @@ jobs:
           npm run build
           npx cap sync android
 
+      - name: Rename app to AI Tutor
+        run: |
+          sed -i 's|<string name="app_name">[^<]*</string>|<string name="app_name">AI Tutor</string>|' client/android/app/src/main/res/values/strings.xml
+          grep "app_name" client/android/app/src/main/res/values/strings.xml
       - name: Make Gradle wrapper executable
         run: chmod +x client/android/gradlew
 
