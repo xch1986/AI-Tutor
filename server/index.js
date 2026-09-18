@@ -10,14 +10,14 @@
  *   routes/     → API route handlers
  */
 
-const { PORT, NODE_ENV, API_KEYS } = require('./config');
+const { PORT, NODE_ENV, API_KEYS, DEEPSEEK_API_KEY } = require('./config');
 const { initDB, getSqliteDb, closeDB } = require('./db/init');
 const { startDataRetentionCleanup } = require('./services/data-retention');
 const { createApp } = require('./app');
 const logger = require('./services/logger');
 
-if (API_KEYS.length === 0) {
-  logger.error('FATAL: No GEMINI_API_KEY found in environment!');
+if (API_KEYS.length === 0 && !DEEPSEEK_API_KEY) {
+  logger.error('FATAL: No GEMINI_API_KEY or DEEPSEEK_API_KEY found in environment!');
   process.exit(1);
 }
 logger.info(`[Key Pool] Loaded ${API_KEYS.length} API key(s).`);
