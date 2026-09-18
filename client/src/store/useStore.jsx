@@ -53,7 +53,7 @@ function getApiUrl(path = '') {
  */
 function getApiToken() {
   const encrypted = localStorage.getItem('ai_tutor_api_token');
-  return decryptData(encrypted) || '';
+  return decryptData(encrypted) || '8359a34763ef6e1586f1ec9ef68d4ead';
 }
 
 async function generateSignature(token, path, method, body, timestamp, formFieldsStr = '', fileFieldsStr = '') {
@@ -204,7 +204,7 @@ export function AppProvider({ children }) {
   const [backendUrl, setBackendUrl] = useState(() => localStorage.getItem('ai_tutor_backend_url') || DEFAULT_BACKEND_URL);
   const [apiToken, setApiToken] = useState(() => {
     const encrypted = localStorage.getItem('ai_tutor_api_token');
-    return decryptData(encrypted) || '';
+    return decryptData(encrypted) || '8359a34763ef6e1586f1ec9ef68d4ead';
   });
   const [profiles, setProfiles] = useState(loadProfiles);
   const [currentProfileId, setCurrentProfileId] = useState(() =>
