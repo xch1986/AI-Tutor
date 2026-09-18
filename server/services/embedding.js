@@ -343,6 +343,37 @@ async function fetchWithKeyRotation(buildURL, options, maxRetries = 8, timeoutMs
     return await fetchDeepSeek(urlType, options, selectedModel);
   }
 
+  // [Custom] OpenAI-compatible embedding provider fallback (e.g. SiliconFlow bge-m3)
+  if (urlType === 'embed' && (process.env.EMBEDDING_API_KEY || '').trim()) {
+    const embedKey = (process.env.EMBEDDING_API_KEY || '').trim();
+    const embedBase = (process.env.EMBEDDING_API_URL || 'https://api.siliconflow.cn/v1').replace(/\/+$/, '');
+    const embedModel = (process.env.EMBEDDING_MODEL || 'BAAI/bge-m3').trim();
+    let payload = {};
+    try { payload = JSON.parse(options.body); } catch (e) {}
+    const text = payload?.content?.parts?.[0]?.text || '';
+    const embedRes = await undiciFetch(`${embedBase}/embeddings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${embedKey}` },
+      body: JSON.stringify({ model: embedModel, input: text, encoding_format: 'float' })
+    });
+    if (!embedRes.ok) {
+      const eb = await embedRes.text();
+      throw new Error(`Embedding API failed: ${embedRes.status} ${eb}`);
+    }
+    const ed = await embedRes.json();
+    const vector = ed?.data?.[0]?.embedding;
+    if (!Array.isArray(vector)) throw new Error('Embedding API returned no vector');
+    const dims = parseInt(process.env.EMBEDDING_DIM || '768', 10);
+    const finalVector = vector.length > dims ? vector.slice(0, dims) : vector;
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ embedding: { values: finalVector } }),
+      text: async () => JSON.stringify({ embedding: { values: finalVector } }),
+      headers: {}
+    };
+  }
+
   const modifiedOptions = options;
 
   // Filter valid keys
